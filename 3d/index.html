@@ -19,7 +19,21 @@
     </div>
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.js"></script>
     <script>
-        var app = angular.module('app', []);
+var app = angular.module('app', ['ngResource']);
+app.factory('EmployeeService', ['$resource', function($resource) {
+  return $resource('/employees/:employeeId', {}, {
+    get: {
+      isArray: true
+    },
+    delete: {
+      isArray: true,
+      method: 'DELETE'
+    },
+    post: {
+      method: 'POST',
+    }
+  });
+}]);
         app.directive('fullName', function() {
           var exports = {};
 
