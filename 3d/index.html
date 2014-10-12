@@ -47,30 +47,33 @@ app.factory('EmployeeService', ['$resource', function($resource) {
 
           return exports;
         });
+        app.controller('main', ['$scope', '$http', '$rootScope', function($scope, $http, $rootScope) {
+          $scope.employees = [];
+          $scope.firstName = $scope.lastName = '';
 
-app.controller('main', ['$scope', 'EmployeeService', '$rootScope', function($scope, EmployeeService, $rootScope) {
-  EmployeeService.get(function (data) {
-    $scope.employees = data;
-  });
+          $http.get('/employees').success(function(data) {
+            $scope.employees = data;
+            $rootScope.$emit('log', 'GET /employees success');
+          });
 
-  $scope.add = function () {
-    EmployeeService.post({
-      first: $scope.firstName,
-      last: $scope.lastName
-    }, function (data) {
-      $scope.employees.push(data);
-    });
-  };
+          $scope.add = function () {
+            $http.post('/employees', {
+              first: $scope.firstName,
+              last: $scope.lastName
+            }).success(function(data) {
+              $scope.employees.push(data);
+              $scope.firstName = $scope.lastName = '';
+              $rootScope.$emit('log', 'POST /employees success');
+            });
+          };
 
-  $scope.remove = function(employee) {
-    EmployeeService.delete({
-      employeeId: employee.id
-    }, function (data) {
-      $scope.employees = data;
-    });
-  }
-}]);
-
+          $scope.remove = function(employee) {
+            $http.delete('/employees/' + employee.id).success(function(data) {
+              $scope.employees = data;
+              $rootScope.$emit('log', 'DELETE /employees success');
+            });
+          }
+        }]);
         app.controller('logger', ['$scope', '$rootScope', function ($scope, $rootScope) {
           $scope.events = [];
 
