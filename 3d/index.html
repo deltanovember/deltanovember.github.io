@@ -1,140 +1,71 @@
-<!DOCTYPE html>
-<meta charset="utf-8" />
-<title>Extending Criminal Liability</title>
-<meta name="description" content="Asynchronous JavaScript">
-<meta name="author" content="Mariusz Nowak" />
+<html lang="en" ng-app="app">
+  <body>
+    <div ng-controller="main">
+      <input type="text" ng-model="firstName" placeholder="first name">
+      <input type="text" ng-model="lastName" placeholder="first name">
+      <button ng-disabled="!(firstName.length && lastName.length)" ng-click="add()">Add</button>
+      <table>
+        <tr ng-repeat="p in employees">
+          <td>{{p.id}}</td>
+          <td><full-name person="p"></full-name></td>
+          <td><button ng-click="$parent.remove(p)">Remove</button></td>
+        </tr>
+      </table>
+    </div>
+    <div ng-controller="logger">
+      <pre>
+        <p ng-repeat="e in events track by $index">{{$index}} - {{e}}</p>
+      </pre>
+    </div>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.js"></script>
+    <script>
+        var app = angular.module('app', []);
+        app.directive('fullName', function() {
+          var exports = {};
 
-<link rel="stylesheet" href="css/font.css" />
-<link rel="stylesheet" href="css/default.css" />
-<link rel="stylesheet" href="highlight/styles/sunburst.css">
+          exports.restrict = 'E';
+          exports.replace = true;
+          exports.scope = {
+            person: '='
+          };
+          exports.template = '<span>{{person.first}} {{person.last}}</span>';
 
-<div id="impress" class="impress-not-supported">
-  <div id="fm1" class="fallback-message hidden">
-    <p>Your browser <b>doesn't support the features required</b> by impress.js,
-      so you are presented with a simplified version of this presentation.</p>
-    <p>For the best experience please use the latest <b>Chrome</b> or
-      <b>Safari</b> browser. Firefox 10 (to be released soon)
-      will also handle it.</p>
-  </div>
-  <div id="fm2" class="fallback-message">
-    <p>If you have fast machine and recent Google Chrome or Safari installed,
-      please check <a href="3d/index.html">a bit more "moving" version of that presentation</a></p>
-    <p style="text-align:center"><big>Otherwise, scroll down to see the slides</big></p>
-  </div>
-  <div id="overview" class="step" data-x="3400" data-y="2000" data-scale="10"></div>
+          return exports;
+        });
+        app.controller('main', ['$scope', '$http', '$rootScope', function($scope, $http, $rootScope) {
+          $scope.employees = [];
+          $scope.firstName = $scope.lastName = '';
 
-  <div id="asynchronous-javascript" class="step">
-    <h1>Extending Criminal Liability</h1>
-    <p class="footer">
-      <a href="http://summit.meetjs.pl/">Complicity</a> ·
-      <a href="http://summit.meetjs.pl/">Conspiracy</a>.
-      <a href="http://summit.meetjs.pl/">Association</a>
-    </p>
-  </div>
+          $http.get('/employees').success(function(data) {
+            $scope.employees = data;
+            $rootScope.$emit('log', 'GET /employees success');
+          });
 
-  <div id="client-side" class="step">
-    <h3>Extending criminal liability</h3>
-    <ul>
-    <li>Association</li>
-    <li>Complicity law</li>
-    </ul>
-  </div>
+          $scope.add = function () {
+            $http.post('/employees', {
+              first: $scope.firstName,
+              last: $scope.lastName
+            }).success(function(data) {
+              $scope.employees.push(data);
+              $scope.firstName = $scope.lastName = '';
+              $rootScope.$emit('log', 'POST /employees success');
+            });
+          };
 
-  <div id="server-side" class="step">
-    <h3>Complicity</h3>
-    <p class="substep">“Complicity” is not of itself an offence. It can occur in three circumstances:</p>
-    <ul>
-    <li>Joint criminal enterprise </li>
-    <li> Extended joint criminal enterprise </li>
-    <li>Accessorial liability </li>
-    </ul>
-  </div>
+          $scope.remove = function(employee) {
+            $http.delete('/employees/' + employee.id).success(function(data) {
+              $scope.employees = data;
+              $rootScope.$emit('log', 'DELETE /employees success');
+            });
+          }
+        }]);
+        app.controller('logger', ['$scope', '$rootScope', function ($scope, $rootScope) {
+          $scope.events = [];
 
-  <div id="why-asynchronous-on-server-side" class="step">
-    <h2><em>Osland</em> (1998) 159 ALR 170</h2>
-  </div>
-
-  <div id="its-about-external-resources" class="step">
-    <h3>The presence requirement</h3>
-    <ul>
-    <li>Presence does not have to be continuous (<em>Franklin</em>) </li>
-    <li> Presence at the time of the agreement will suffice (<em>Sutseski</em>) </li>
-    <li>Participation could be proved by telephone intercept tapes and listening tape devices (<em>Prochilo</em>) </li>
-    </ul>
-  </div>
-
-  <div id="how-much-waiting-can-cost" class="step">
-    <h3>Proving agreement</h3>
-    <ul>
-    <li> The agreement could be unspoken (<em>Tangye</em></em>) </li>
-    <li>However there still needs to be ‘mutuality of assistance’ (<em>Taufahema</em>) </li>
-    <li>'Common intention' will not suffice (<em>Taufahema</em>) </li>
-    </ul>
-  </div>
-
-  <div id="better-software-can-multitask" class="step">
-    <h3>Withdrawal</h3>
-    <ul>
-    <li>Requires 'timely communication' (<em>White v Ridley</em>)</li>
-    <li>Requires reasonable steps to prevent the commission of the crime (<em>White v Ridley</em>) </li>
-    <li>After which no further 'preventative steps' required (<em>Truong</em>) </li>
-    </ul>
-  </div>
-
-  <div id="how-to-write-asynchronous-code" class="step">
-    <h3>Extended joint criminal enterprise</h3>
-    <p>Extended joint criminal enterprise occurs when a participant commits another crime beyond that which was originally contemplated</p>
-  </div>
-  <div id="how-io-should-be-done" class="step">
-    <h2><em>McAuliffe and McAuliffe </em> (1995) 130 ALR 26</h2>
-  </div>
-
-
-
-  <div id="nodejs-convention" class="step">
-  <h3>Individual foresight, not ‘common’ agreement</h3>
-    <p>Does extended criminal enterpise have to be <em>joint</em> ?</p>
-  </div>
-  <div id="nodejs-convention" class="step">
-  <h3>Joint criminal enterprise vs extended joint criminal enterprise</h3>
-  </div>
-
-  <div id="exercise-nodejs" class="step">
-    <h3>What must have been foreseen?</h3>
-    <ul>
-    <li>Both actus reus and mens rea must be foreseen (<em>Barlow</em>)</li>
-    <li>Generally, there is an option to convict on a lesser alternative (<em>King</em>) </li>
-    </ul>
-  </div>
-
-  <div id="exercise-node-comment" class="step">
-  <h3>Must there be a foundational crime?</h3>
-    <ul>
-    <li>Historically, no (<em>Miller</em>)</li>
-    <li>But now, yes (<em>Taufahema</em>) </li>
-    </ul>
-  </div>
-
-  <div id="most-popular-solutions" class="step">
-    <h3>Criticisms and defences of extended joint criminal enterprise</h3>
-    <ul>
-    <li>'A serious disharmony in the law' (per Kirby J in <em>Clayton)</em></li>
-    <li>Joint criminal enterprise supported by policy considerations (<em>Powell</em>) </li>
-    </ul>
-  </div>
-  <div id="most-popular-solutions" class="step">
-    <h3>Quote</h3>
-  </div>
-  <div id="most-popular-solutions" class="step">
-    <p><em>Complicity with infelicity shows a paucity of sagacity. The law's opacity needs audacity for clarity and simplicity.</em></p>
-  </div>
-  <div class="hint"><p>Use a spacebar or arrow keys to navigate</p></div>
-</div>
-
-<div id="timer"></div>
-
-<script src="highlight/highlight.pack.js"></script>
-<script src="js/impress.js"></script>
-<script src="js/default.js"></script>
-</body>
+          $rootScope.$on('log', function (event, data) {
+            $scope.events.push(data.trim());
+          });
+        }]);
+    </script>
+  </body>
 </html>
